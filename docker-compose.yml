@@ -1,0 +1,73 @@
+version: '3'
+
+volumes:
+  db_data: {}
+  db_data_backups: {}
+  media: {}
+  static: {}
+
+services:
+  db:
+    build:
+      context: .
+      dockerfile: ./compose/db/Dockerfile
+    image: adminsmart_db
+    volumes:
+      - db_data:/var/lib/dbql/data
+      - db_data_backups:/backups
+    env_file:
+      - ./.envs/.db
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:6.0.9
+
+  django: &django
+    build:
+      context: .
+      dockerfile: ./compose/django/Dockerfile
+    image: adminsmart_django
+    depends_on:
+      - db
+    volumes:
+      - ./django:/app
+      - static:/app/static
+      - media:/app/media
+    env_file:
+      - ./.envs/.django
+      - ./.envs/.db
+    ports:
+      - "8000:8000"
+    command: /start.sh
+    links:
+      - db:db
+
+  celeryworker:
+    <<: *django
+    image: adminsmart_celeryworker
+    depends_on:
+      - redis
+      - db
+
+    ports: []
+    command: /start-celeryworker.sh
+
+  celerybeat:
+    <<: *django
+    image: adminsmart_celerybeat
+    depends_on:
+      - redis
+      - db
+
+    ports: []
+    command: /start-celerybeat.sh
+
+  flower:
+    <<: *django
+    image: adminsmart_flower
+    ports:
+      - "5555:5555"
+    command: /start-flower.sh
+
+  

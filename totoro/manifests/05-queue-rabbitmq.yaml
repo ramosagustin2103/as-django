@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: StatefulSet
+metadata:
+  name: queue-rabbitmq
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: queue-rabbitmq
+  serviceName: queue-rabbitmq
+  template:
+    metadata:
+      labels:
+        app: queue-rabbitmq
+    spec:
+      containers:
+      - name: queue-rabbitmq
+        image: rabbitmq:3.6.0
+        env:
+        - name: RABBITMQ_DEFAULT_USER
+          value: admin
+        - name: RABBITMQ_DEFAULT_PASS
+          value: mypass
+        resources:
+          limits:
+            memory: "200Mi"
+            cpu: "100m"
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: queue-rabbitmq
+spec:
+  type: ClusterIP  
+  ports:
+  - name: queue-rabbitmq
+    port: 5672
+  selector:
+    app: queue-rabbitmq

@@ -1,0 +1,8 @@
+Revisar
+    como hacer que celery corra con su servicios vinculados
+    
+Deployar
+
+Migrara base de datos
+
+hacer lo mismo en el namespace default
